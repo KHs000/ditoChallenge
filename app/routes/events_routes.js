@@ -2,8 +2,16 @@ const request = require("request");
 
 module.exports = (app, db) => {
     app.post("/pushEvents", (req, res) => {
-        req.body.map(event => {
-            
+        const sql    = "INSERT INTO events (event, timestamp) VALUES ?";
+        const params = req.body.map(event => [event.event, event.timestamp]);
+
+        db.query(sql, [params], (err, result) => {
+            if (err) {
+                res.send(err);
+                throw err;
+            }
+
+            res.send(`Inserted ${result.affectedRows} lines`);
         });
     });
 

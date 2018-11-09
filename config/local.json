@@ -1,0 +1,6 @@
+{
+    "host": "db4free.net",
+    "user": "felipemasseo",
+    "pass": "mysql12345",
+    "db":   "ditochallenge"
+}
