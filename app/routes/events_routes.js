@@ -1,6 +1,11 @@
 const request = require("request");
 
 module.exports = (app, db) => {
+    // Insert array of events at database. Individual event objects must be at json format as it follows:
+    // {
+    //     event: "some_event", 
+    //     timestamp: "2016-09-22T13:57:31.2311892-04:00"
+    // }
     app.post("/pushEvents", (req, res) => {
         const sql    = "INSERT INTO events (event, timestamp) VALUES ?";
         const params = req.body.map(event => [event.event, event.timestamp]);
@@ -15,6 +20,17 @@ module.exports = (app, db) => {
         });
     });
 
+    // Search the events database for the given name (2 characters minimal)
+    app.post("/autoComplete", (req, res) => {
+        const needle = req.body.word;
+
+        if (needle.length < 2) { res.send([]) }
+        else {
+            
+        }
+    });
+
+    // Return the parsed timeline from the events listed at the endpoint
     app.get("/timeline", (req, res) => {
         request("https://storage.googleapis.com/dito-questions/events.json", {json: true}, (err, response, body) => {
 
