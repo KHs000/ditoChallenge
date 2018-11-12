@@ -8,7 +8,7 @@ module.exports = (app, db) => {
     // }
     app.post("/pushEvents", (req, res) => {
         const sql    = "INSERT INTO events (event, timestamp) VALUES ?";
-        const params = req.body.map(event => [event.event, event.timestamp]);
+        const params = req.body.map(event => [event.event.toLowerCase(), event.timestamp]);
 
         db.query(sql, [params], (err, result) => {
             if (err) {
@@ -26,7 +26,16 @@ module.exports = (app, db) => {
 
         if (needle.length < 2) { res.send([]) }
         else {
-            
+            const sql = `SELECT event, timestamp FROM events WHERE event LIKE '${needle.toLowerCase()}%'`;
+
+            db.query(sql, (err, result) => {
+                if (err) {
+                    res.send(err);
+                    throw err;
+                }
+
+                res.send(result);
+            });
         }
     });
 
@@ -70,6 +79,15 @@ module.exports = (app, db) => {
                 res.send(timeline);
             });
         });
+    });
+
+    app.get("/populateDatabase", (req, res) => {
+        const lines = 100;
+
+        const eventsTypes = ["buy", "sell"]
+        for (i = 0 ; i < lines ; i++) {
+
+        }
     });
 
     this.filterCustomData = (custom_data, keyString) => {
