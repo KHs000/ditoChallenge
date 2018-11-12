@@ -20,7 +20,8 @@ module.exports = (app, db) => {
         });
     });
 
-    // Search the events database for the given name (2 characters minimal)
+    // Search the events database for the given event name (2 characters minimal)
+    // Post body: { word: <needle goes here> }
     app.post("/autoComplete", (req, res) => {
         const needle = req.body.word;
 
@@ -34,14 +35,14 @@ module.exports = (app, db) => {
                     throw err;
                 }
 
-                res.send(result);
+                res.send({ linesFound: result.length, data: result });
             });
         }
     });
 
     // Return the parsed timeline from the events listed at the endpoint
     app.get("/timeline", (req, res) => {
-        request("https://storage.googleapis.com/dito-questions/events.json", {json: true}, (err, response, body) => {
+        request("https://storage.googleapis.com/dito-questions/events.json", { json: true }, (err, response, body) => {
 
             timeline = [];
             
@@ -82,12 +83,28 @@ module.exports = (app, db) => {
     });
 
     app.get("/populateDatabase", (req, res) => {
-        const lines = 100;
+        const lines = 1000;
 
-        const eventsTypes = ["buy", "sell"]
+        const eventsTypes = ["buy", "sell", "swap", "retail", "swamp", "return", "reject", "busy"];
+        const events = [];
         for (i = 0 ; i < lines ; i++) {
-
+            events[i] = {
+                event: eventsTypes[this.getRandomInt(eventsTypes.length)],
+                timestamp: `2018-${this.getRandomInt(12) + 1}-${this.getRandomInt(30) + 1}T${this.getRandomInt(24)}:${this.getRandomInt(60)}:${this.getRandomInt(60)}.${this.getRandomInt(9999999)}-04:00`
+            };
         }
+
+        const sql    = "INSERT INTO events (event, timestamp) VALUES ?";
+        const params = events.map(event => [event.event.toLowerCase(), event.timestamp]);
+
+        db.query(sql, [params], (err, result) => {
+            if (err) {
+                res.send(err);
+                throw err;
+            }
+
+            res.send(`Inserted ${result.affectedRows} lines`);
+        });
     });
 
     this.filterCustomData = (custom_data, keyString) => {
@@ -123,4 +140,6 @@ module.exports = (app, db) => {
             } catch (err) { reject(err) }
         });
     }
+
+    this.getRandomInt = max => Math.floor(Math.random() * Math.floor(max));
 };
