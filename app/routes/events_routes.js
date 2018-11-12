@@ -82,31 +82,7 @@ module.exports = (app, db) => {
         });
     });
 
-    app.get("/populateDatabase", (req, res) => {
-        const lines = 1000;
-
-        const eventsTypes = ["buy", "sell", "swap", "retail", "swamp", "return", "reject", "busy"];
-        const events = [];
-        for (i = 0 ; i < lines ; i++) {
-            events[i] = {
-                event: eventsTypes[this.getRandomInt(eventsTypes.length)],
-                timestamp: `2018-${this.getRandomInt(12) + 1}-${this.getRandomInt(30) + 1}T${this.getRandomInt(24)}:${this.getRandomInt(60)}:${this.getRandomInt(60)}.${this.getRandomInt(9999999)}-04:00`
-            };
-        }
-
-        const sql    = "INSERT INTO events (event, timestamp) VALUES ?";
-        const params = events.map(event => [event.event.toLowerCase(), event.timestamp]);
-
-        db.query(sql, [params], (err, result) => {
-            if (err) {
-                res.send(err);
-                throw err;
-            }
-
-            res.send(`Inserted ${result.affectedRows} lines`);
-        });
-    });
-
+    // Auxiliary function used multiple times to extract a value from the given key property name inside custom_data array
     this.filterCustomData = (custom_data, keyString) => {
         return custom_data
             .filter(data => data.key === keyString)
@@ -114,6 +90,8 @@ module.exports = (app, db) => {
             .value;
     };
 
+    // Build the timeline events using promise, so multiple events can be parsed at once, after the timeline is completed,
+    // it will be sorted before being returned to the client
     this.buildTimelineEventTemplate = (timeline, events, eventTemplate, productTemplate) => {
         return new Promise((resolve, reject) => {
             try {
@@ -140,6 +118,4 @@ module.exports = (app, db) => {
             } catch (err) { reject(err) }
         });
     }
-
-    this.getRandomInt = max => Math.floor(Math.random() * Math.floor(max));
 };
